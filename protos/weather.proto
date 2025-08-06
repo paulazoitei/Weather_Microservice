@@ -21,4 +21,5 @@ float temperature = 2;
 string description = 3;
 int32 humidity = 4;
 float wind_speed = 5;
+string data_created=6;
 }
