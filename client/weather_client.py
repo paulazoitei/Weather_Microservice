@@ -1,58 +1,9 @@
 import os
 import sys
-from datetime import datetime
-from sqlalchemy import and_
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from protos import weather_pb2_grpc,weather_pb2
-import time
 import grpc
-import matplotlib.pyplot as plt
-import pandas as pd
-from server.storage import Session, Storage
-import matplotlib.dates as mdates
-
-def get_temperature_and_dates(city_name):
-    try:
-        start_date = datetime(2025, 8, 1)
-        end_date = datetime(2025, 8, 5, 23, 59, 59)
-        session = Session()
-        query = session.query(Storage.temperature, Storage.data_created).filter(
-            and_(
-                Storage.city_name == city_name,
-                Storage.data_created >= start_date,
-                Storage.data_created <= end_date
-            )
-        )
-        results = query.all()
-        session.close()
-
-        temperatures = []
-        dates = []
-        for temp, date in results:
-            temperatures.append(temp)
-            dates.append(date)
-
-        return dates, temperatures
-
-    except Exception as e:
-        print(f" Error fetching data from DB: {e}")
-        return [], []
-
-def create_plot(city_name,dates,temperatures):
-    try:
-        fig, ax = plt.subplots(figsize=(10, 7))
-        ax.set_xlabel("Dates from 1 to 5 august", fontsize=12)
-        ax.set_ylabel("Temperatures")
-        ax.set_title(f"Temperature fluctuation chart for {city_name}")
-        ax.xaxis.set_major_locator(mdates.DayLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
-
-        ax.plot(dates, temperatures, linestyle='--', marker='o', color='red')
-        plt.show()
-    except Exception as e:
-        print(f" Error generating chart:{e}")
-
+from chart_utils import ChartUtils
 
 def run():
     with grpc.insecure_channel('localhost:50051') as channel:
@@ -97,14 +48,14 @@ def run():
                     print()
                     continue
 
-                dates,temps=get_temperature_and_dates(city)
+                dates,temps=ChartUtils.get_temperature_and_dates(city)
 
                 if not dates:
                     print(f"No data found for {city} between 1-5 August.")
                     print()
                     continue
 
-                create_plot(city, dates, temps)
+                ChartUtils.create_plot(city, dates, temps)
 
 
             else:
