@@ -3,7 +3,9 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from protos import weather_pb2_grpc,weather_pb2
 import grpc
-from chart_utils import ChartUtils
+
+from temperatures_chart import TemperaturesChart
+from temperatures_process import  TemperaturesProcess
 
 def run():
     with grpc.insecure_channel('localhost:50051') as channel:
@@ -48,14 +50,14 @@ def run():
                     print()
                     continue
 
-                dates,temps=ChartUtils.get_temperature_and_dates(city)
+                dates,temps=TemperaturesProcess.get_temperature_and_dates(city)
 
                 if not dates:
                     print(f"No data found for {city} between 1-5 August.")
                     print()
                     continue
 
-                ChartUtils.create_plot(city, dates, temps)
+                TemperaturesChart.create_plot(city, dates, temps)
 
 
             else:
